@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
-import logo from '../Public/images/file_00000000ac1471f5b6bc76d30b671d9d.png';
-
+import logo from "/images/file_00000000ac1471f5b6bc76d30b671d9d.png";
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

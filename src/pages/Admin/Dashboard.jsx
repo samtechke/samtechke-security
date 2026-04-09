@@ -9,8 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../../firebase/config';
 import { collection, getCountFromServer, query, where, onSnapshot } from 'firebase/firestore';
-import logo from '../../pages/Public/images/file_00000000ac1471f5b6bc76d30b671d9d.png';
-
+import logo from "/images/file_00000000ac1471f5b6bc76d30b671d9d.png";
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');

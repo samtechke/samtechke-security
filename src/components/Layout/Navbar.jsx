@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { FiMenu, FiX, FiDownload } from 'react-icons/fi';
-import logo from '../../pages/Public/images/file_00000000ac1471f5b6bc76d30b671d9d.png';
-
+import logo from "/images/file_00000000ac1471f5b6bc76d30b671d9d.png";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
