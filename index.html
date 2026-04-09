@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/src/pages/Public/images/launchericon-96x96.png" />
+    <link rel="icon" type="image/png" href="/images/launchericon-96x96.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>SAMTECHKE Security Systems | Electric Fence, CCTV & Alarm Installation Kenya</title>
     <meta name="description" content="Professional security systems installation in Kenya. Electric fence, CCTV cameras, alarm systems, and fence repair services. Protect your property with SAMTECHKE." />
@@ -12,10 +12,10 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#FFD000" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="SAMTECHKE" />
-    <link rel="apple-touch-icon" href="/src/pages/Public/images/launchericon-192x192.png" />
+    <link rel="apple-touch-icon" href="/images/launchericon-192x192.png" />
     
     <!-- Splash Screen Styles -->
     <style>
@@ -110,7 +110,7 @@
     <!-- Splash Screen with Original Logo -->
     <div id="splash" class="splash-screen">
       <div class="splash-logo">
-        <img src="/src/pages/Public/images/file_00000000ac1471f5b6bc76d30b671d9d.png" alt="SAMTECHKE Logo" />
+        <img src="/images/file_00000000ac1471f5b6bc76d30b671d9d.png" alt="SAMTECHKE Logo" />
       </div>
       <div class="splash-title">
         SAMTECH<span>KE</span>
@@ -147,11 +147,6 @@
           navigator.serviceWorker.register('/sw.js')
             .then(reg => console.log('PWA Service Worker registered:', reg))
             .catch(err => console.log('PWA Service Worker error:', err));
-          
-          // Register Firebase Messaging Service Worker
-          navigator.serviceWorker.register('/firebase-messaging-sw.js')
-            .then(reg => console.log('Firebase Messaging SW registered:', reg))
-            .catch(err => console.log('Firebase Messaging SW error:', err));
         });
       }
     </script>

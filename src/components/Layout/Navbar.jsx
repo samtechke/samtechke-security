@@ -1,14 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiDownload } from 'react-icons/fi';
 import logo from '../../pages/Public/images/file_00000000ac1471f5b6bc76d30b671d9d.png';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showInstallBtn, setShowInstallBtn] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Listen for install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBtn(true);
+    });
+
+    // Check if already installed (iOS)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS && !window.navigator.standalone) {
+      setShowInstallBtn(true);
+    }
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted install');
+        }
+        setDeferredPrompt(null);
+        setShowInstallBtn(false);
+      });
+    } else if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      alert('Tap Share button then "Add to Home Screen"');
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -46,6 +78,16 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Install App Button - Desktop */}
+            {showInstallBtn && (
+              <button
+                onClick={handleInstallClick}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm"
+              >
+                <FiDownload /> Install App
+              </button>
+            )}
             
             {/* Dashboard & Logout - ONLY shows when logged in */}
             {user && (
@@ -95,6 +137,16 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Install App Button - Mobile */}
+            {showInstallBtn && (
+              <button
+                onClick={handleInstallClick}
+                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 mt-2"
+              >
+                <FiDownload /> Install App
+              </button>
+            )}
             
             {user && (
               <>
