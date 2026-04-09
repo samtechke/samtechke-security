@@ -4,42 +4,51 @@ import { motion } from 'framer-motion';
 
 const FloatingInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [showInstall, setShowInstall] = useState(true); // Always show
+  const [showInstall, setShowInstall] = useState(true);
 
   useEffect(() => {
-    // Listen for install prompt event
-    window.addEventListener('beforeinstallprompt', (e) => {
+    const handler = (e) => {
+      // Prevent Chrome 67+ from automatically showing the prompt
       e.preventDefault();
+      // Stash the event so it can be triggered later
       setDeferredPrompt(e);
       setShowInstall(true);
-    });
+    };
 
-    // Hide only if already installed (standalone mode)
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Hide button if app is already installed (standalone mode)
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setShowInstall(false);
     }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
   const handleInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setShowInstall(false);
-      }
-      setDeferredPrompt(null);
-    } else {
-      // Manual install instructions
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      if (isIOS) {
-        alert('Tap Share button → Add to Home Screen');
-      } else {
-        alert('Click Chrome menu (3 dots) → Install app');
-      }
+    if (!deferredPrompt) {
+      // Fallback for browsers that don't support the prompt or if event didn't fire
+      alert('To install, tap the browser menu (3 dots) and select "Install app" or "Add to Home Screen".');
+      return;
     }
+
+    // Show the install prompt
+    deferredPrompt.prompt();
+
+    // Wait for the user's response
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      console.log('User accepted install');
+      setShowInstall(false);
+    } else {
+      console.log('User dismissed install');
+    }
+    // Clear the deferred prompt (it can only be used once)
+    setDeferredPrompt(null);
   };
 
-  // Always show the button
+  if (!showInstall) return null;
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 100 }}
