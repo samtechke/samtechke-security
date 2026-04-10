@@ -62,7 +62,7 @@ const Footer = () => {
                 <FaFacebook />
               </a>
               <a 
-                href="#" 
+                href="" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-primary transition text-2xl"
@@ -71,7 +71,7 @@ const Footer = () => {
                 <FaXTwitter />
               </a>
               <a 
-                href="#" 
+                href="https://www.facebook.com/share/p/1CWVqonhsL/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-primary transition text-2xl"
