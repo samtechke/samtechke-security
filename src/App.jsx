@@ -87,6 +87,37 @@ const SecretAdminHandler = () => {
 };
 
 function App() {
+  // Auto-update checker for PWA
+  useEffect(() => {
+    // Check for service worker updates every hour
+    const checkForUpdates = () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.update();
+        });
+      }
+    };
+    
+    // Check immediately
+    checkForUpdates();
+    
+    // Check every hour
+    const interval = setInterval(checkForUpdates, 60 * 60 * 1000);
+    
+    // Listen for controller changes (new service worker activated)
+    const handleControllerChange = () => {
+      console.log('New service worker activated, reloading...');
+      window.location.reload();
+    };
+    
+    navigator.serviceWorker?.addEventListener('controllerchange', handleControllerChange);
+    
+    return () => {
+      clearInterval(interval);
+      navigator.serviceWorker?.removeEventListener('controllerchange', handleControllerChange);
+    };
+  }, []);
+
   return (
     <Router>
       <AuthProvider>
