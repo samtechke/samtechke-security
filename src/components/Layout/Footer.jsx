@@ -1,4 +1,4 @@
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa';
+import { FaFacebook, FaXTwitter, FaInstagram, FaYoutube, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa6';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -34,10 +34,12 @@ const Footer = () => {
             <h4 className="text-gray-900 font-semibold mb-4">Contact Us</h4>
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 text-gray-600">
-                <FaPhone className="text-primary" /> <a href="tel:+254729289847">+254 729 289847</a>
+                <FaPhone className="text-primary" /> 
+                <a href="tel:+254729289847" className="hover:text-primary transition">+254 729 289847</a>
               </li>
               <li className="flex items-center gap-2 text-gray-600">
-                <FaEnvelope className="text-primary" /> info@samtechke.com
+                <FaEnvelope className="text-primary" /> 
+                <a href="mailto:samtechkesystems@gmail.com" className="hover:text-primary transition">samtechkesystems@gmail.com</a>
               </li>
               <li className="flex items-center gap-2 text-gray-600">
                 <FaMapMarker className="text-primary" /> Nairobi, Kenya
@@ -49,16 +51,40 @@ const Footer = () => {
           <div>
             <h4 className="text-gray-900 font-semibold mb-4">Follow Us</h4>
             <div className="flex gap-4">
-              <a href="#" className="text-gray-600 hover:text-primary transition text-2xl">
+              <a 
+                href="#" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-primary transition text-2xl"
+                aria-label="Facebook (coming soon)"
+              >
                 <FaFacebook />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition text-2xl">
-                <FaTwitter />
+              <a 
+                href="#" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-primary transition text-2xl"
+                aria-label="X (coming soon)"
+              >
+                <FaXTwitter />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition text-2xl">
+              <a 
+                href="#" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-primary transition text-2xl"
+                aria-label="Instagram (coming soon)"
+              >
                 <FaInstagram />
               </a>
-              <a href="#" className="text-gray-600 hover:text-primary transition text-2xl">
+              <a 
+                href="https://youtube.com/@samtechmedia6454" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-600 hover:text-primary transition text-2xl"
+                aria-label="YouTube"
+              >
                 <FaYoutube />
               </a>
             </div>
