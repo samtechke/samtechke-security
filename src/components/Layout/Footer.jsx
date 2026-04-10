@@ -1,4 +1,5 @@
-import { FaFacebook, FaXTwitter, FaInstagram, FaYoutube, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa6';
+import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaEnvelope, FaPhone, FaMapMarker } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
