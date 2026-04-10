@@ -8,7 +8,8 @@ import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 // YOUR REAL IMAGES
 import logo from "/images/file_00000000ac1471f5b6bc76d30b671d9d.png";
 import electricFence from "/images/electric-fence-warning.jpg";
-import samImage from "/images/Screenshot_2026-04-09-13-52-26-195_com.whatsapp.w4b~2.jpg";
+import samImage from "/images/samtechke-brand.jpg";
+
 const Home = () => {
   const [projects, setProjects] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
