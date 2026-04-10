@@ -10,6 +10,7 @@ const Messages = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedMessages, setExpandedMessages] = useState({});
 
   // Fetch messages from Firebase
   const fetchMessages = async () => {
@@ -48,7 +49,7 @@ const Messages = () => {
         }
       }
       if (unreadInView.length > 0) {
-        fetchMessages(); // Refresh the list
+        fetchMessages();
         toast.success(`📬 Marked ${unreadInView.length} message(s) as read`, {
           icon: '✅',
           duration: 2000
@@ -70,7 +71,7 @@ const Messages = () => {
       const messageRef = doc(db, 'messages', id);
       await updateDoc(messageRef, { read: true });
       toast.success('Marked as read');
-      fetchMessages(); // Refresh list
+      fetchMessages();
     } catch (error) {
       console.error("Error marking as read:", error);
       toast.error('Failed to mark as read');
@@ -83,12 +84,24 @@ const Messages = () => {
         const messageRef = doc(db, 'messages', id);
         await deleteDoc(messageRef);
         toast.success('Message deleted');
-        fetchMessages(); // Refresh list
+        fetchMessages();
       } catch (error) {
         console.error("Error deleting message:", error);
         toast.error('Failed to delete message');
       }
     }
+  };
+
+  const toggleExpand = (id) => {
+    setExpandedMessages(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const truncateText = (text, maxLength = 150) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
   const unreadCount = messages.filter(m => !m.read).length;
@@ -103,12 +116,12 @@ const Messages = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         {/* Header with Back Button */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
           <button
             onClick={() => navigate('/admin/dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-primary transition"
+            className="flex items-center gap-2 text-gray-600 hover:text-primary transition w-fit"
           >
             <FiArrowLeft size={20} />
             <span>Back to Dashboard</span>
@@ -123,74 +136,92 @@ const Messages = () => {
 
         {/* Messages List */}
         <div className="space-y-4">
-          {messages.map((message, index) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`bg-white rounded-lg p-6 shadow-sm border-l-4 transition-all ${
-                !message.read ? 'border-primary' : 'border-gray-200'
-              }`}
-            >
-              <div className="flex flex-wrap justify-between items-start gap-4">
-                {/* Message Content */}
-                <div className="flex-1">
-                  <div className="flex flex-wrap gap-4 mb-3">
+          {messages.map((message, index) => {
+            const isExpanded = expandedMessages[message.id];
+            const messageText = message.message || '';
+            const shouldTruncate = messageText.length > 150;
+            const displayText = isExpanded ? messageText : truncateText(messageText, 150);
+
+            return (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`bg-white rounded-lg p-4 md:p-6 shadow-sm border-l-4 transition-all overflow-hidden ${
+                  !message.read ? 'border-primary' : 'border-gray-200'
+                }`}
+              >
+                {/* Header Info */}
+                <div className="flex flex-wrap justify-between items-start gap-3 mb-4">
+                  <div className="flex flex-wrap gap-3 md:gap-4">
                     <div className="flex items-center gap-2 text-gray-700">
-                      <FiUser className="text-primary" />
-                      <span className="font-semibold">{message.name}</span>
+                      <FiUser className="text-primary flex-shrink-0" />
+                      <span className="font-semibold break-words max-w-[150px] md:max-w-none">{message.name}</span>
                     </div>
                     <div className="flex items-center gap-2 text-gray-700">
-                      <FiPhone className="text-primary" />
-                      <a href={`tel:${message.phone}`} className="hover:text-primary transition">
+                      <FiPhone className="text-primary flex-shrink-0" />
+                      <a href={`tel:${message.phone}`} className="hover:text-primary transition break-all">
                         {message.phone}
                       </a>
                     </div>
                     <div className="flex items-center gap-2 text-gray-500 text-sm">
-                      <FiCalendar />
+                      <FiCalendar className="flex-shrink-0" />
                       <span>{message.date || (message.timestamp?.toDate ? message.timestamp.toDate().toLocaleDateString() : 'Unknown date')}</span>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-2">
-                    <FiMail className="text-primary mt-1 flex-shrink-0" />
-                    <p className="text-gray-600">{message.message}</p>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 self-start">
+                    {!message.read && (
+                      <button
+                        onClick={() => handleMarkAsRead(message.id)}
+                        className="flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 transition text-sm"
+                      >
+                        <FiCheckCircle size={14} /> Mark Read
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(message.id)}
+                      className="flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700 transition text-sm"
+                    >
+                      <FiTrash2 size={14} /> Delete
+                    </button>
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  {!message.read && (
-                    <button
-                      onClick={() => handleMarkAsRead(message.id)}
-                      className="flex items-center gap-1 bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700 transition text-sm"
-                    >
-                      <FiCheckCircle /> Mark Read
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(message.id)}
-                    className="flex items-center gap-1 bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700 transition text-sm"
-                  >
-                    <FiTrash2 /> Delete
-                  </button>
+                {/* Message Content with Word Wrap */}
+                <div className="flex items-start gap-2 mb-4">
+                  <FiMail className="text-primary mt-1 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-700 break-words whitespace-pre-wrap overflow-wrap-anywhere">
+                      {displayText}
+                    </p>
+                    {shouldTruncate && (
+                      <button
+                        onClick={() => toggleExpand(message.id)}
+                        className="text-primary text-sm mt-2 hover:underline"
+                      >
+                        {isExpanded ? 'Show less' : 'Read more'}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Quick Reply Button */}
-              <div className="mt-4 pt-3 border-t border-gray-200">
-                <a
-                  href={`https://wa.me/${message.phone.replace(/\D/g, '')}?text=Hello ${message.name}, thank you for contacting SAMTECHKE. We'll get back to you shortly.`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition text-sm"
-                >
-                  <FiCheckCircle /> Reply via WhatsApp
-                </a>
-              </div>
-            </motion.div>
-          ))}
+                {/* Quick Reply Button */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <a
+                    href={`https://wa.me/${message.phone.replace(/\D/g, '')}?text=Hello ${encodeURIComponent(message.name)}, thank you for contacting SAMTECHKE. We'll get back to you shortly.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition text-sm"
+                  >
+                    <FiCheckCircle /> Reply via WhatsApp
+                  </a>
+                </div>
+              </motion.div>
+            );
+          })}
 
           {messages.length === 0 && (
             <div className="bg-white rounded-lg p-12 text-center shadow-sm border border-gray-100">
