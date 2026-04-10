@@ -62,7 +62,7 @@ const Footer = () => {
                 <FaFacebook />
               </a>
               <a 
-                href="https://www.facebook.com/share/p/1CWVqonhsL/" 
+                href="#" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-primary transition text-2xl"
