@@ -4,6 +4,41 @@ import { FiX, FiChevronLeft, FiChevronRight, FiImage, FiPlay, FiPause } from 're
 import { db } from '../../firebase/config';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 
+// Skeleton Loader Component
+const ImageSkeleton = () => (
+  <div className="w-full h-56 md:h-64 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse rounded-lg" />
+);
+
+// Lazy Image Component with loading state
+const LazyImage = ({ src, alt, className, onLoad }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const imgRef = useRef(null);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete) {
+      setIsLoaded(true);
+      onLoad?.();
+    }
+  }, []);
+
+  return (
+    <div className="relative w-full h-full">
+      {!isLoaded && <ImageSkeleton />}
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        className={`${className} ${!isLoaded ? 'hidden' : 'block'}`}
+        onLoad={() => {
+          setIsLoaded(true);
+          onLoad?.();
+        }}
+        loading="lazy"
+      />
+    </div>
+  );
+};
+
 const Gallery = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -11,6 +46,7 @@ const Gallery = () => {
   const [loading, setLoading] = useState(true);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [previewIndexes, setPreviewIndexes] = useState({});
+  const [loadedImages, setLoadedImages] = useState({});
   const autoPlayInterval = useRef(null);
   const previewIntervals = useRef({});
 
@@ -22,17 +58,22 @@ const Gallery = () => {
     return project.image ? [project.image] : [];
   };
 
+  // Mark image as loaded
+  const markImageLoaded = (projectId, imageIndex) => {
+    setLoadedImages(prev => ({
+      ...prev,
+      [`${projectId}-${imageIndex}`]: true
+    }));
+  };
+
   // Start preview slideshow for a single project
   const startPreviewSlideshow = (projectId, images) => {
-    // Clear existing interval
     if (previewIntervals.current[projectId]) {
       clearInterval(previewIntervals.current[projectId]);
     }
     
-    // Only start if more than 1 image
     if (images.length <= 1) return;
     
-    // Start new interval
     previewIntervals.current[projectId] = setInterval(() => {
       setPreviewIndexes(prev => {
         const currentIndex = prev[projectId] || 0;
@@ -42,10 +83,9 @@ const Gallery = () => {
           [projectId]: nextIndex
         };
       });
-    }, 2000); // Change every 2 seconds
+    }, 2000);
   };
 
-  // Stop preview slideshow for a project
   const stopPreviewSlideshow = (projectId) => {
     if (previewIntervals.current[projectId]) {
       clearInterval(previewIntervals.current[projectId]);
@@ -84,14 +124,11 @@ const Gallery = () => {
       projects.forEach(project => {
         const images = getProjectImages(project);
         initialIndexes[project.id] = 0;
-        
-        // Start slideshow for this project
         startPreviewSlideshow(project.id, images);
       });
       setPreviewIndexes(initialIndexes);
     }
     
-    // Cleanup on unmount
     return () => {
       Object.keys(previewIntervals.current).forEach(projectId => {
         stopPreviewSlideshow(projectId);
@@ -121,7 +158,6 @@ const Gallery = () => {
   }, [isAutoPlaying, selectedProject]);
 
   const openLightbox = (project, index = 0) => {
-    // Stop preview slideshow for this project when opening
     stopPreviewSlideshow(project.id);
     setSelectedProject(project);
     setCurrentImageIndex(index);
@@ -136,7 +172,6 @@ const Gallery = () => {
       clearInterval(autoPlayInterval.current);
     }
     
-    // Restart preview slideshow for the closed project
     if (selectedProject) {
       const images = getProjectImages(selectedProject);
       if (images.length > 1) {
@@ -151,7 +186,6 @@ const Gallery = () => {
         prev + 1 >= getProjectImages(selectedProject).length ? 0 : prev + 1
       );
       if (isAutoPlaying) {
-        // Reset auto-play timer
         if (autoPlayInterval.current) {
           clearInterval(autoPlayInterval.current);
         }
@@ -170,7 +204,6 @@ const Gallery = () => {
         prev - 1 < 0 ? getProjectImages(selectedProject).length - 1 : prev - 1
       );
       if (isAutoPlaying) {
-        // Reset auto-play timer
         if (autoPlayInterval.current) {
           clearInterval(autoPlayInterval.current);
         }
@@ -254,6 +287,7 @@ const Gallery = () => {
                 const imageCount = images.length;
                 const currentPreviewIndex = previewIndexes[project.id] || 0;
                 const currentPreviewImage = images[currentPreviewIndex] || images[0];
+                const isImageLoaded = loadedImages[`${project.id}-${currentPreviewIndex}`];
                 
                 return (
                   <motion.div
@@ -266,20 +300,24 @@ const Gallery = () => {
                     onMouseEnter={() => imageCount > 1 && stopPreviewSlideshow(project.id)}
                     onMouseLeave={() => imageCount > 1 && startPreviewSlideshow(project.id, images)}
                   >
-                    <div className="relative overflow-hidden bg-gray-200" style={{ minHeight: '220px' }}>
+                    <div className="relative overflow-hidden bg-gray-100" style={{ minHeight: '220px' }}>
+                      {!isImageLoaded && <ImageSkeleton />}
                       <AnimatePresence mode="wait">
                         <motion.img 
                           key={`${project.id}-${currentPreviewIndex}`}
                           src={currentPreviewImage}
                           alt={project.title}
                           initial={{ opacity: 0, scale: 1.1 }}
-                          animate={{ opacity: 1, scale: 1 }}
+                          animate={{ opacity: isImageLoaded ? 1 : 0, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           transition={{ duration: 0.5 }}
-                          className="w-full h-56 md:h-64 object-cover"
+                          className={`w-full h-56 md:h-64 object-cover ${!isImageLoaded ? 'hidden' : 'block'}`}
+                          onLoad={() => markImageLoaded(project.id, currentPreviewIndex)}
                           onError={(e) => {
                             e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
+                            markImageLoaded(project.id, currentPreviewIndex);
                           }}
+                          loading="lazy"
                         />
                       </AnimatePresence>
                       
@@ -294,7 +332,7 @@ const Gallery = () => {
                       
                       {/* Image count badge */}
                       {imageCount > 1 && (
-                        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                        <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 backdrop-blur-sm">
                           <FiImage size={12} /> {imageCount} photos
                         </div>
                       )}
@@ -332,7 +370,7 @@ const Gallery = () => {
         </div>
       </section>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal with Lazy Loading */}
       <AnimatePresence>
         {selectedProject && (
           <div 
@@ -349,44 +387,52 @@ const Gallery = () => {
             {getProjectImages(selectedProject).length > 1 && (
               <>
                 <button 
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary transition bg-black/50 rounded-full p-2 z-10 hover:scale-110"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary transition bg-black/50 rounded-full p-2 z-10 hover:scale-110 backdrop-blur-sm"
                   onClick={(e) => { e.stopPropagation(); prevImage(); }}
                 >
                   <FiChevronLeft />
                 </button>
                 <button 
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary transition bg-black/50 rounded-full p-2 z-10 hover:scale-110"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary transition bg-black/50 rounded-full p-2 z-10 hover:scale-110 backdrop-blur-sm"
                   onClick={(e) => { e.stopPropagation(); nextImage(); }}
                 >
                   <FiChevronRight />
                 </button>
                 <button 
-                  className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded-full hover:bg-primary hover:text-black transition z-10 flex items-center gap-2"
+                  className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded-full hover:bg-primary hover:text-black transition z-10 flex items-center gap-2 backdrop-blur-sm"
                   onClick={(e) => { e.stopPropagation(); toggleAutoPlay(); }}
                 >
                   {isAutoPlaying ? <FiPause size={16} /> : <FiPlay size={16} />}
                   {isAutoPlaying ? 'Pause' : 'Play Slideshow'}
                 </button>
-                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-10">
+                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full z-10 backdrop-blur-sm">
                   {currentImageIndex + 1} / {getProjectImages(selectedProject).length}
                 </div>
               </>
             )}
             
             <div className="max-w-5xl w-full max-h-[80vh] px-4" onClick={(e) => e.stopPropagation()}>
-              <motion.img 
-                key={currentImageIndex}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                src={getProjectImages(selectedProject)[currentImageIndex]} 
-                alt={selectedProject.title}
-                className="w-full h-auto max-h-[70vh] object-contain rounded-t-lg"
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/800x500?text=Image+Not+Found';
-                }}
-              />
+              <div className="relative bg-black/20 rounded-t-lg min-h-[300px] flex items-center justify-center">
+                {!loadedImages[`lightbox-${currentImageIndex}`] && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
+                <motion.img 
+                  key={currentImageIndex}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: loadedImages[`lightbox-${currentImageIndex}`] ? 1 : 0 }}
+                  transition={{ duration: 0.3 }}
+                  src={getProjectImages(selectedProject)[currentImageIndex]} 
+                  alt={selectedProject.title}
+                  className="w-full h-auto max-h-[70vh] object-contain rounded-t-lg"
+                  onLoad={() => setLoadedImages(prev => ({ ...prev, [`lightbox-${currentImageIndex}`]: true }))}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x500?text=Image+Not+Found';
+                  }}
+                  loading="lazy"
+                />
+              </div>
               <div className="bg-white/10 backdrop-blur-md p-4 rounded-b-lg">
                 <h3 className="text-xl font-bold text-white">{selectedProject.title}</h3>
                 <p className="text-gray-200 mt-2 text-sm line-clamp-2">{selectedProject.description}</p>
