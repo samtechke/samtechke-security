@@ -34,7 +34,11 @@ const SecretAdminHandler = () => {
     const keyCode = ['a', 'd', 'm', 'i', 'n'];
     
     const handleKeyPress = (e) => {
-      keySequence.push(e.key.toLowerCase());
+      // Safety check - ignore if no key or if it's not a letter
+      if (!e || !e.key || e.key.length > 1) return;
+      
+      const lowerKey = e.key.toLowerCase();
+      keySequence.push(lowerKey);
       if (keySequence.length > keyCode.length) {
         keySequence.shift();
       }
@@ -49,9 +53,11 @@ const SecretAdminHandler = () => {
     let tapTimer;
     
     const handleTap = (e) => {
-      // Check if tapping on the footer area or logo area
-      const isFooter = e.target.closest('footer');
-      const isLogo = e.target.closest('a')?.href?.includes('/') || e.target.closest('img');
+      // Safety check
+      if (!e || !e.target) return;
+      
+      const isFooter = e.target.closest?.('footer');
+      const isLogo = e.target.closest?.('a')?.href?.includes('/') || e.target.closest?.('img');
       
       if (isFooter || isLogo) {
         tapCount++;
