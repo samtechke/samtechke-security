@@ -53,7 +53,7 @@ const Footer = () => {
             <h4 className="text-gray-900 font-semibold mb-4">Follow Us</h4>
             <div className="flex gap-4">
               <a 
-                href="#" 
+                href="https://www.facebook.com/share/p/1CWVqonhsL/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-primary transition text-2xl"
