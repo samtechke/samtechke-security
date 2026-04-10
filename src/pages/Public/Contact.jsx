@@ -104,7 +104,7 @@ const Contact = () => {
                   <FaEnvelope className="text-primary text-2xl" />
                   <div>
                     <p className="text-gray-500 text-sm">Email</p>
-                    <a href="mailto:info@samtechke.com" className="text-gray-900 font-semibold">info@samtechke.com</a>
+                    <a href="mailto:samtechkesystems@gmail.com" className="text-gray-900 font-semibold">samtechkesystems@gmail.com</a>
                   </div>
                 </div>
 
